@@ -17,22 +17,16 @@ exports.seed = function (connection) {
     .then(() => {
       return connection.insert(topicData).into('topics').returning('*');
     })
-    .then((topicRows) => {
-      // console.log(`added ${topicRows.length} topics`)
+    .then(() => {
       return connection.insert(userData).into('users').returning('*');
     })
-    .then((userRows) => {
-      // console.log(`added ${userRows.length} users`)
+    .then(() => {
       const dateFormatArticle = formatDate(articleData)
       return connection.insert(dateFormatArticle).into('articles').returning('*')
     })
     .then(articleRows => {
-      // console.log(`added ${articleRows.length} users`)
-      const dateFormatComment = formatDate(commentData)
       const articleRef = createArticleRef(articleRows)
-      const formattedComment = formatCommentData(dateFormatComment, articleRef)
-      // console.log(formattedComment)
-
+      const formattedComment = formatCommentData(commentData, articleRef)
       return connection.insert(formattedComment).into('comments').returning('*')
     })
 };
