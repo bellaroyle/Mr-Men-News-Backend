@@ -42,10 +42,10 @@ exports.createReference = (array, keyToAdd, valueToAdd) => {
     })
     return ref;
 }
+*/
 
-
-
-const createAuthorRef = (userRows) => {
+/*
+exports.createAuthorRef = (userRows) => {
     const ref = {};
     userRows.forEach(user => {
         ref[user.username] = user.name;
@@ -53,16 +53,4 @@ const createAuthorRef = (userRows) => {
     return ref;
 }
 
-
-const formatDate = (data) => {
-    const formattedData = data
-        .map(({ created_at, ...restOfData }) => {
-            const newData = {
-                ...restOfData,
-                created_at: new Date(created_at),
-            }
-            return newData
-        })
-    return formattedData
-}
 */
