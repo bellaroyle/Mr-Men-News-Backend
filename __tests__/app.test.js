@@ -57,7 +57,6 @@ describe('/api', () => {
                     })
                 })
         });
-
         test('GET responds with status 404 and message User Not Found if given a username that does not exist', () => {
             return request(app)
                 .get('/api/users/myUsername123')
@@ -66,7 +65,6 @@ describe('/api', () => {
                     expect(body).toMatchObject({ msg: 'User Not Found' })
                 })
         });
-
         test('status 405 for an invalid method', () => {
             const invalidMethods = ['post', 'patch', 'delete', 'put'];
             const requestPromises = invalidMethods.map((method) => {
@@ -82,44 +80,124 @@ describe('/api', () => {
     });
 
     describe('.api/articles/:article_id', () => {
-        test('GET responds with status 200 and the article', () => {
-            return request(app)
-                .get('/api/articles/1')
-                .expect(200)
-                .then(({ body }) => {
-                    expect(body).toMatchObject({
-                        article: {
-                            article_id: 1,
-                            title: 'Living in the shadow of a great man',
-                            body: 'I find this existence challenging',
-                            votes: 100,
-                            topic: 'mitch',
-                            author: 'butter_bridge',
-                            created_at: '2018-11-15T12:21:54.171Z',
-                            comment_count: 13
-                        }
+
+        describe('GET methods', () => {
+            test('GET responds with 200 and the article', () => {
+                return request(app)
+                    .get('/api/articles/1')
+                    .expect(200)
+                    .then(({ body }) => {
+                        expect(body).toMatchObject({
+                            article: {
+                                article_id: 1,
+                                title: 'Living in the shadow of a great man',
+                                body: 'I find this existence challenging',
+                                votes: 100,
+                                topic: 'mitch',
+                                author: 'butter_bridge',
+                                created_at: '2018-11-15T12:21:54.171Z',
+                                comment_count: 13
+                            }
+                        })
                     })
+            });
+        })
+
+        describe('PATCH methods', () => {
+            test('PATCH responds with 202 and the article with incremented votes', () => {
+                return request(app)
+                    .patch('/api/articles/1')
+                    .send({ inc_votes: 5 })
+                    .expect(202)
+                    .then(({ body }) => {
+                        expect(body).toMatchObject({
+                            article: {
+                                article_id: 1,
+                                title: 'Living in the shadow of a great man',
+                                body: 'I find this existence challenging',
+                                votes: 105,
+                                topic: 'mitch',
+                                author: 'butter_bridge',
+                                created_at: '2018-11-15T12:21:54.171Z'
+                            }
+                        })
+                    })
+            });
+            test('PATCH responds with 202 and the article with decremented votes', () => {
+                return request(app)
+                    .patch('/api/articles/1')
+                    .send({ inc_votes: -5 })
+                    .expect(202)
+                    .then(({ body }) => {
+                        expect(body).toMatchObject({
+                            article: {
+                                article_id: 1,
+                                title: 'Living in the shadow of a great man',
+                                body: 'I find this existence challenging',
+                                votes: 95,
+                                topic: 'mitch',
+                                author: 'butter_bridge',
+                                created_at: '2018-11-15T12:21:54.171Z'
+                            }
+                        })
+                    })
+            });
+            test('PATCH responds with 400 and message Bad Request: Action Not Allowed if trying to update anything but votes', () => {
+                const propertiesToUpdate = [
+                    { article_id: 5900 },
+                    { title: 'newTitle' },
+                    { body: 'newBody' },
+                    { topic: 'FAKE NEWS' },
+                    { author: 'user123' },
+                    { created_at: 'now' }
+                ]
+                const propertiesPromises = propertiesToUpdate.map((property) => {
+                    const key = Object.keys(property)[0]
+                    const value = Object.values(property)[0]
+                    return request(app)
+                        .patch('/api/articles/1')
+                        .send(property)
+                        .expect(400)
+                        .then(({ body }) => {
+                            expect(body).toEqual({ msg: "Bad Request: Action Not Allowed" })
+                        })
                 })
+                return Promise.all(propertiesPromises)
+
+            });
         });
 
-        test('GET responds with status 404 and message Article Not Found if given an article_id that does not exist', () => {
-            return request(app)
-                .get('/api/articles/100')
-                .expect(404)
-                .then(({ body }) => {
-                    expect(body).toMatchObject({ msg: 'Article Not Found' })
-                })
-        });
 
-        test('GET responds with status 400 and message Bad Request if given an article_id that is not a number', () => {
-            return request(app)
-                .get('/api/articles/articleFive')
-                .expect(400)
-                .then(({ body }) => {
-                    expect(body).toMatchObject({ msg: 'Bad Request' })
+
+
+        describe('invalid article_id', () => {
+            test('GET, PATCH - responds with 404 and message Article Not Found if given an article_id that does not exist', () => {
+                const methods = ['get', 'patch'];
+                const requestPromises = methods.map((method) => {
+                    return request(app)
+                    [method]('/api/articles/100')
+                        .send({ inc_votes: 5 })
+                        .expect(404)
+                        .then(({ body }) => {
+                            expect(body).toMatchObject({ msg: 'Article Not Found' })
+                        })
                 })
+                return Promise.all(requestPromises);
+            });
+            test('GET, PATCH - respond with 400 and message Bad Request if given an article_id that does not exist', () => {
+                const methods = ['get', 'patch'];
+                const requestPromises = methods.map((method) => {
+                    return request(app)
+                    [method]('/api/articles/articleFive')
+                        .expect(400)
+                        .send({ inc_votes: 5 })
+                        .then(({ body }) => {
+                            expect(body).toMatchObject({ msg: 'Bad Request' })
+                        })
+                });
+                return Promise.all(requestPromises);
+            });
         });
-        // responds with 400 if given a string instead of a number for article id 
 
     });
 

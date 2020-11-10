@@ -1,6 +1,5 @@
 const connection = require('../connection')
 
-
 const fetchCommentsByArticleId = (article_id) => {
     return connection
         .select('*')
@@ -10,7 +9,6 @@ const fetchCommentsByArticleId = (article_id) => {
             return comments
         })
 }
-
 
 exports.fetchArticleById = (article_id) => {
     return connection
@@ -27,3 +25,21 @@ exports.fetchArticleById = (article_id) => {
             };
         });
 };
+
+exports.updateArticleById = (article_id, inc_votes) => {
+    return connection
+        .select('*')
+        .from('articles')
+        .where('article_id', '=', article_id)
+        .returning('*')
+        .then(article => {
+            if (article.length === 0) return Promise.reject({ status: 404, msg: 'Article Not Found' });
+            else {
+                article[0].votes += inc_votes;
+                return article[0];
+            }
+
+        })
+
+
+}
