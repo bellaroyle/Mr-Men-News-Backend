@@ -150,8 +150,6 @@ describe('formatCommentData', () => {
     })
 })
 
-
-
 describe('formatDate', () => {
     test('returns empty array when passed an empty array', () => {
         const input = []
