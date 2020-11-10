@@ -2,7 +2,6 @@ process.env.NODE_ENV = "test"
 const app = require("../app")
 const request = require("supertest")
 const connection = require("../connection")
-const { TestScheduler } = require("jest")
 
 describe('/api', () => {
     afterAll(() => {
