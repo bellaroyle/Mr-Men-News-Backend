@@ -6,14 +6,13 @@
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
     "seed": "knex seed:run",
-    "seed-test": "psql -f db/setup.sql && NODE_ENV=test knex seed:run",
+    "seed-test": "NODE_ENV=test knex seed:run",
     "test": "jest",
-    "migrate-make-test": "NODE_ENV=test knex migrate:make",
-    "migrate-latest-test": "NODE_ENV=test knex migrate:latest",
-    "migrate-rollback-test": "NODE_ENV=test knex migrate:rollback",
     "migrate-make": "knex migrate:make",
     "migrate-latest": "knex migrate:latest",
-    "migrate-rollback": "knex migrate:rollback"
+    "migrate-rollback": "knex migrate:rollback",
+    "migrate-latest-test": "NODE_ENV=test knex migrate:latest",
+    "migrate-rollback-test": "NODE_ENV=test knex migrate:rollback"
   },
   "repository": {
     "type": "git",

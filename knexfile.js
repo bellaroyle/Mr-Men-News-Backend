@@ -22,5 +22,6 @@ const customConfig = {
     }
   }
 };
+console.log(ENV)
 
 module.exports = { ...customConfig[ENV], ...baseConfig };
