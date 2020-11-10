@@ -43,7 +43,7 @@ describe('/api', () => {
     })
 
     describe('.api/users/:username', () => {
-        test('(GET responds with status 200 and the user)', () => {
+        test('GET responds with status 200 and the user', () => {
             return request(app)
                 .get('/api/users/butter_bridge')
                 .expect(200)
@@ -82,7 +82,7 @@ describe('/api', () => {
     });
 
     describe('.api/articles/:article_id', () => {
-        test('(GET responds with status 200 and the article)', () => {
+        test('GET responds with status 200 and the article', () => {
             return request(app)
                 .get('/api/articles/1')
                 .expect(200)
@@ -95,11 +95,13 @@ describe('/api', () => {
                             votes: 100,
                             topic: 'mitch',
                             author: 'butter_bridge',
-                            created_at: '2018-11-15T12:21:54.171Z'
+                            created_at: '2018-11-15T12:21:54.171Z',
+                            comment_count: 13
                         }
                     })
                 })
         });
+
         test('GET responds with status 404 and message Article Not Found if given an article_id that does not exist', () => {
             return request(app)
                 .get('/api/articles/100')
@@ -109,6 +111,14 @@ describe('/api', () => {
                 })
         });
 
+        test('GET responds with status 400 and message Bad Request if given an article_id that is not a number', () => {
+            return request(app)
+                .get('/api/articles/articleFive')
+                .expect(400)
+                .then(({ body }) => {
+                    expect(body).toMatchObject({ msg: 'Bad Request' })
+                })
+        });
         // responds with 400 if given a string instead of a number for article id 
 
     });
