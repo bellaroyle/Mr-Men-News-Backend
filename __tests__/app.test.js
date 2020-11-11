@@ -82,9 +82,69 @@ describe('/api', () => {
 
 
     describe('./api/articles', () => {
-
+        //////////////////UNFINISHED!!
         describe('GET methods', () => {
-            //// do stuff here
+
+            test('GET responds with 200 and an array of articles with the correct properties ', () => {
+                return request(app)
+                    .get('/api/articles')
+                    .expect(200)
+                    .then(({ body: { articles } }) => {
+                        expect(Object.keys(articles[0])).toEqual(expect.arrayContaining([
+                            'author',
+                            'title',
+                            'article_id',
+                            'topic',
+                            'created_at',
+                            'votes',
+                            'comment_count'
+                        ]))
+                        //expect(articles[0].author).toBe("butter_bridge")
+                    })
+            });
+
+            test('GET responds with 200 and articles sorted by created_at, in descending order as a default', () => {
+                return request(app)
+                    .get('/api/articles')
+                    .expect(200)
+                    .then(({ body: { articles } }) => {
+                        expect(articles).toBeSortedBy('created_at', { descending: true })
+                    })
+            });
+
+            test.skip('GET responds with 200 and articles sorted by comment_count, in descending order', () => {
+                return request(app)
+                    .get('/api/articles?sort_by=comment_count')
+                    .expect(200)
+                    .then(({ body: { articles } }) => {
+                        console.log(articles)
+                        expect(articles).toBeSortedBy('comment_count', { descending: true })
+                    })
+            });
+
+
+            test.skip('GET responds with 200 and the articles sorted by your query, in desc order as a default ', () => {
+                const columnToSortBy = [
+                    'author',
+                    'title',
+                    'article_id',
+                    'topic',
+                    'created_at',
+                    'votes',
+                    'comment_count'
+                ]
+                const sortPromises = columnToSortBy.map(column => {
+                    return request(app)
+                        .get(`/api/articles?sort_by=${column}`)
+                        .expect(200)
+                        .then(({ body }) => {
+                            console.log(column, body.articles)
+                            expect(body.articles).toBeSortedBy(column, { descending: true })
+                        })
+                })
+                return Promise.all(sortPromises)
+            });
+
         });
 
 
@@ -184,7 +244,6 @@ describe('/api', () => {
             });
 
             describe('invalid article_id or method', () => {
-
                 test('GET, PATCH - respond with 404 and message "Article Not Found" if given an article_id that does not exist', () => {
                     const methods = ['get', 'patch'];
                     const requestPromises = methods.map((method) => {
@@ -198,7 +257,7 @@ describe('/api', () => {
                     })
                     return Promise.all(requestPromises);
                 });
-                test('GET, PATCH - respond with 400 and message "Bad Request" if given an article_id that does not exist', () => {
+                test('GET, PATCH - respond with 400 and message "Bad Request" if given an article_id that is of the wrong type', () => {
                     const methods = ['get', 'patch'];
                     const requestPromises = methods.map((method) => {
                         return request(app)
@@ -211,7 +270,6 @@ describe('/api', () => {
                     });
                     return Promise.all(requestPromises);
                 });
-
                 test('status 405 for an invalid method', () => {
                     const invalidMethods = ['post', 'put', 'delete'];
                     const requestPromises = invalidMethods.map((method) => {
@@ -300,8 +358,17 @@ describe('/api', () => {
 
                     });
 
-                    test('POST responds with 4 if user doesn\'t exist ', () => {
-
+                    test('POST responds with 400 if user doesn\'t exist ', () => {
+                        return request(app)
+                            .post('/api/articles/1/comments')
+                            .send({
+                                username: 'fakeUser123',
+                                body: 'comment'
+                            })
+                            .expect(400)
+                            .then(({ body }) => {
+                                expect(body).toEqual({ msg: "Bad Request" })
+                            })
                     });
                 });
 
@@ -318,15 +385,117 @@ describe('/api', () => {
                                     'created_at',
                                     'body'
                                 ]))
+                                expect(comments[0].author).toBe("butter_bridge")
+                            })
+                    });
+                    test('GET responds with 200 and comments sorted by created_at, in descending order as a default', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                expect(comments).toBeSortedBy('created_at', { descending: true })
+                            })
+                    });
+                    test('GET responds with 200 and comments in ascending order', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?order=asc')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                expect(comments).toBeSortedBy('created_at', { descending: false })
+                            })
+                    });
+                    test('GET responds with 200 and the comments sorted by your query, in desc order as a default ', () => {
+                        const columnToSortBy = ['comment_id', 'author', 'votes', 'created_at', 'body']
+                        const sortPromises = columnToSortBy.map(column => {
+                            return request(app)
+                                .get(`/api/articles/1/comments?sort_by=${column}`)
+                                .expect(200)
+                                .then(({ body: { comments } }) => {
+                                    expect(comments).toBeSortedBy(column, { descending: true })
+                                })
+                        })
+                        return Promise.all(sortPromises)
+                    });
+                    test('GET responds with 200 and the comments sorted by your query, in asc order', () => {
+                        const columnToSortBy = ['comment_id', 'author', 'votes', 'created_at', 'body']
+                        const sortPromises = columnToSortBy.map(column => {
+                            return request(app)
+                                .get(`/api/articles/1/comments?sort_by=${column}&order=asc`)
+                                .expect(200)
+                                .then(({ body: { comments } }) => {
+                                    expect(comments).toBeSortedBy(column, { descending: false })
+                                })
+                        })
+                        return Promise.all(sortPromises)
+                    });
+                    test('GET responds with 400 and message "Bad Request" if trying to sort by column that doesn\'t exist', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?sort_by=notAColumn')
+                            .expect(400)
+                            .then(({ body }) => {
+                                expect(body).toEqual({ msg: "Bad Request" })
+                            })
+                    });
+                    test('GET responds with 400 if order is not asc or desc', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?order=random')
+                            .expect(400)
+                            .then(({ body }) => {
+                                expect(body).toEqual({ msg: "Bad Request" })
                             })
                     });
                 });
 
                 describe('invalid article id or method ', () => {
+                    // is this a 400 or a 404? i thought 404 but the error code is already in handle psql errors 
+                    test('GET, POST - respond with 400 and message "Bad Request" if given an article_id that does not exist', () => {
+                        const methods = ['get', 'post'];
+                        const requestPromises = methods.map((method) => {
+                            return request(app)
+                            [method]('/api/articles/100/comments')
+                                .send({
+                                    username: 'rogersop',
+                                    body: 'comment'
+                                })
+                                .expect(400)
+                                .then(({ body }) => {
+                                    expect(body).toMatchObject({ msg: "Bad Request" })
+                                })
+                        })
+                        return Promise.all(requestPromises);
+                    });
 
+                    test('GET, POST - respond with 400 and message "Bad Request" if given an article_id that does not exist', () => {
+                        const methods = ['get', 'post'];
+                        const requestPromises = methods.map((method) => {
+                            return request(app)
+                            [method]('/api/articles/articleFive/comments')
+                                .send({
+                                    username: 'rogersop',
+                                    body: 'comment'
+                                })
+                                .expect(400)
+                                .then(({ body }) => {
+                                    expect(body).toMatchObject({ msg: 'Bad Request' })
+                                })
+                        });
+                        return Promise.all(requestPromises);
+                    });
+
+                    test('status 405 for an invalid method', () => {
+                        const invalidMethods = ['patch', 'put', 'delete'];
+                        const requestPromises = invalidMethods.map((method) => {
+                            return request(app)
+                            [method]('/api/articles/1/comments')
+                                .expect(405)
+                                .then(({ body }) => {
+                                    expect(body.msg).toBe('Invalid Method')
+                                });
+                        });
+                        return Promise.all(requestPromises);
+                    });
                 });
             });
-
 
         });
 
@@ -335,8 +504,23 @@ describe('/api', () => {
 
     describe('./api/comments/:comment_id', () => {
 
-        describe('PATCH methods', () => {
-            //// do stuff here
+        describe.only('PATCH methods', () => {
+            test('PATCH responds with 202 and the comment with incremented votes', () => {
+                return request(app)
+                    .patch('/api/comments/1')
+                    .send({ inc_votes: 5 })
+                    .expect(202)
+                    .then(({ body: { comment } }) => {
+                        expect(comment).toMatchObject({
+                            comment_id: 1,
+                            author: 'butter_bridge',
+                            article_id: 1,
+                            votes: 21,
+                            created_at: '2017-11-22 12:36:03.389+00',
+                            body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
+                        })
+                    })
+            });
         });
 
         describe('DELETE methods', () => {
