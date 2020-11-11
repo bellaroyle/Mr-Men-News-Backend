@@ -122,7 +122,6 @@ describe('/api', () => {
                     })
             });
 
-
             test.skip('GET responds with 200 and the articles sorted by your query, in desc order as a default ', () => {
                 const columnToSortBy = [
                     'author',
@@ -504,7 +503,7 @@ describe('/api', () => {
 
     describe('./api/comments/:comment_id', () => {
 
-        describe.only('PATCH methods', () => {
+        describe('PATCH methods', () => {
             test('PATCH responds with 202 and the comment with incremented votes', () => {
                 return request(app)
                     .patch('/api/comments/1')
@@ -514,18 +513,67 @@ describe('/api', () => {
                         expect(comment).toMatchObject({
                             comment_id: 1,
                             author: 'butter_bridge',
-                            article_id: 1,
+                            article_id: 9,
                             votes: 21,
-                            created_at: '2017-11-22 12:36:03.389+00',
+                            created_at: '2017-11-22T12:36:03.389Z',
                             body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
                         })
                     })
+            });
+
+            test('PATCH responds with 202 and the comment with decremented votes', () => {
+                return request(app)
+                    .patch('/api/comments/1')
+                    .send({ inc_votes: -5 })
+                    .expect(202)
+                    .then(({ body: { comment } }) => {
+                        expect(comment).toMatchObject({
+                            comment_id: 1,
+                            author: 'butter_bridge',
+                            article_id: 9,
+                            votes: 11,
+                            created_at: '2017-11-22T12:36:03.389Z',
+                            body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
+                        })
+                    })
+            });
+
+            test('PATCH responds with 400 and message "Bad Request" if inc_votes is not an number ', () => {
+                return request(app)
+                    .patch('/api/comments/1')
+                    .send({ inc_votes: 'not a number' })
+                    .expect(400)
+                    .then(({ body }) => {
+                        expect(body).toMatchObject({ msg: "Bad Request" })
+                    });
+            })
+            test('PATCH responds with 400 and message "Bad Request" if trying to update anything but votes', () => {
+                const propertiesToUpdate = [
+                    { comment_id: 100 },
+                    { author: 'newUser' },
+                    { article_id: 100 },
+                    { created_at: 'now' },
+                    { body: "much worse comment" }
+                ]
+                const propertiesPromises = propertiesToUpdate.map((property) => {
+                    return request(app)
+                        .patch('/api/comments/1')
+                        .send(property)
+                        .expect(400)
+                        .then(({ body }) => {
+                            expect(body).toEqual({ msg: "Bad Request" })
+                        })
+                })
+                return Promise.all(propertiesPromises)
+
             });
         });
 
         describe('DELETE methods', () => {
             //// do stuff here 
         });
+
+        //invalid and bad endpoints
 
     });
 
