@@ -1,17 +1,52 @@
 {
   "GET /api": {
-    "description": "serves up a json representation of all the available endpoints of the api"
+    "description": "Serves a json representation of all the available endpoints of the api"
   },
   "GET /api/topics": {
-    "description": "serves an array of all topics",
+    "description": "Serves an array of all topics.",
     "queries": [],
     "exampleResponse": {
-      "topics": [{ "slug": "football", "description": "Footie!" }]
+      "topics": [
+        {
+          "slug": "football",
+          "description": "Footie!"
+        }
+      ]
+    }
+  },
+  "POST /api/users": {
+    "description": "Adds a user, serves the added user",
+    "requestBodyExample": {
+      "name": "user-1",
+      "username": "username"
+    },
+    "exampleResponse": {
+      "user": {
+        "name": "user-1",
+        "username": "username",
+        "avatar-url": "null"
+      }
+    }
+  },
+  "GET /api/users/:username": {
+    "description": "Serves an object with the usernames data.",
+    "queries": [],
+    "exampleResponse": {
+      "user": {
+        "username": "username",
+        "name": "user-1",
+        "avatar-url": "https://avatar.img"
+      }
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "description": "Serves an array of all articles",
+    "queries": [
+      "author",
+      "topic",
+      "sort_by",
+      "order"
+    ],
     "exampleResponse": {
       "articles": [
         {
@@ -23,5 +58,105 @@
         }
       ]
     }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "Serves an object containing the article that matches article_id",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "article_id": 1,
+        "title": "article-1",
+        "author": "author-username",
+        "body": "Text from the article...",
+        "topic": "article-topic",
+        "created_at": 1527695953341,
+        "votes": 25,
+        "comment_count": 9
+      }
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "Updates the votes on the article that matches article_id, by amount passed as the body of the request, serves an object containing the updated article",
+    "requestBodyExample": {
+      "inc_votes": 5
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 1,
+        "title": "article-1",
+        "author": "author-username",
+        "body": "Text from the article...",
+        "topic": "article-topic",
+        "created_at": 1527695953341,
+        "votes": 30,
+        "comment_count": 9
+      }
+    }
+  },
+  "GET api/articles/:article_id/comments": {
+    "description": "Serves an array containing the comment objects associated with the article that matches article_id",
+    "queries": [
+      "sort_by",
+      "order"
+    ],
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 1,
+          "author": "author-username",
+          "votes": 0,
+          "created_at": 1527695953341,
+          "body": "Text from the comment..."
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "Adds a comment to the article that matches article_id, serves an object containing the added comment",
+    "requestBodyExample": {
+      "username": "user-1",
+      "body": "Text from the comment..."
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 20,
+        "author": "author-username",
+        "article_id": 1,
+        "votes": 0,
+        "created_at": 1527695953341,
+        "body": "Text from the comment..."
+      }
+    }
+  },
+  "GET api/comments/:comment_id": {
+    "description": "Serves an object containing the comment that matches comment_id",
+    "queries": [],
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 1,
+        "author": "author-username",
+        "votes": 0,
+        "created_at": 1527695953341,
+        "body": "Text from the comment..."
+      }
+    }
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "Updates the votes on the comment that matches comment_id, by amount passed as the body of the request, serves an object containing the updated comment",
+    "requestBodyExample": {
+      "inc_votes": 5
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 1,
+        "author": "author-username",
+        "votes": 10,
+        "created_at": 1527695953341,
+        "body": "Text from the comment..."
+      }
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "Deletes the comment that matches comment_id"
   }
 }
