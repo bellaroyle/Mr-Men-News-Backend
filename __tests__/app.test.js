@@ -10,7 +10,7 @@ describe('/api', () => {
     beforeEach(() => { return connection.seed.run() })
 
     describe('./api/topics', () => {
-        test('GET responds with status 200 & all topics ', () => {
+        test('GET -- 200 -- responds with all topics ', () => {
             return request(app)
                 .get('/api/topics')
                 .expect(200)
@@ -24,8 +24,7 @@ describe('/api', () => {
                     })
                 })
         })
-
-        test('status 405 for an invalid method', () => {
+        test('GET -- 405 "Invalid Method"', () => {
             const invalidMethods = ['post', 'patch', 'delete', 'put'];
             const requestPromises = invalidMethods.map((method) => {
                 return request(app)
@@ -40,7 +39,7 @@ describe('/api', () => {
     })
 
     describe('./api/users/:username', () => {
-        test('GET responds with status 200 and the user', () => {
+        test('GET -- 200 -- responds with the user', () => {
             return request(app)
                 .get('/api/users/butter_bridge')
                 .expect(200)
@@ -54,7 +53,7 @@ describe('/api', () => {
                     })
                 })
         });
-        test('GET responds with status 404 and message "User Not Found" if given a username that does not exist', () => {
+        test('GET -- 404 "User Not Found" -- if given a username that does not exist', () => {
             return request(app)
                 .get('/api/users/myUsername123')
                 .expect(404)
@@ -62,7 +61,7 @@ describe('/api', () => {
                     expect(body).toMatchObject({ msg: 'User Not Found' })
                 })
         });
-        test('status 405 for an invalid method', () => {
+        test('GET -- 405 "Invalid Method" -- invalid methods', () => {
             const invalidMethods = ['post', 'patch', 'delete', 'put'];
             const requestPromises = invalidMethods.map((method) => {
                 return request(app)
@@ -80,8 +79,7 @@ describe('/api', () => {
     describe('./api/articles', () => {
         describe('GET methods', () => {
             describe('happy path', () => {
-
-                test('GET responds with 200 and an array of articles with the correct properties ', () => {
+                test('200 -- responds with array of articles with the correct properties', () => {
                     return request(app)
                         .get('/api/articles')
                         .expect(200)
@@ -98,8 +96,7 @@ describe('/api', () => {
                             //expect(articles[0].author).toBe("butter_bridge")
                         })
                 });
-
-                test('GET responds with 200 and articles sorted by created_at, in descending order as a default', () => {
+                test('200 -- responds with articles sorted by created_at, in descending order as a default', () => {
                     return request(app)
                         .get('/api/articles')
                         .expect(200)
@@ -107,8 +104,7 @@ describe('/api', () => {
                             expect(articles).toBeSortedBy('created_at', { descending: true })
                         })
                 });
-
-                test('GET responds with 200 and the articles sorted by any valid column that is queried,( in desc order as a default) ', () => {
+                test('200 -- responds with articles sorted by any valid column that is queried,(in desc order as a default)', () => {
                     const columnToSortBy = [
                         'author',
                         'title',
@@ -129,8 +125,7 @@ describe('/api', () => {
                     })
                     return Promise.all(sortPromises)
                 });
-
-                test('GET responds with 200 and the articles sorted by any valid column that is queried, and sorts in ascending order ', () => {
+                test('200 -- responds with articles sorted by any valid column that is queried, sorted in ascending order', () => {
                     const columnToSortBy = [
                         'author',
                         'title',
@@ -151,8 +146,7 @@ describe('/api', () => {
                     })
                     return Promise.all(sortPromises)
                 });
-
-                test('200 -- accepts author query that filters the articles by the username value specified in the query', () => {
+                test('200 -- accepts articles query, responds with articles filtered by the author value specified in the query', () => {
                     return request(app)
                         .get('/api/articles?author=butter_bridge')
                         .expect(200)
@@ -163,8 +157,7 @@ describe('/api', () => {
                             expect(allByAuthor).toBe(true)
                         })
                 });
-
-                test('200 --  returns empty array if author has no articles but is a valid username', () => {
+                test('200 -- responds with empty array if author has no articles but is a valid username', () => {
                     return request(app)
                         .get('/api/articles?author=lurker')
                         .expect(200)
@@ -172,9 +165,7 @@ describe('/api', () => {
                             expect(articles).toEqual([])
                         })
                 });
-
-
-                test('200 -- accepts topic query that filters the articles by the topic value specified in the query', () => {
+                test('200 -- accepts topic query, responds with articles filtered by the topic value specified in the query', () => {
                     return request(app)
                         .get('/api/articles?topic=mitch')
                         .expect(200)
@@ -185,8 +176,7 @@ describe('/api', () => {
                             expect(allByTopic).toBe(true)
                         })
                 });
-
-                test('200 --  returns empty array if no article with queried topic but is a valid topic', () => {
+                test('200 -- responds with empty array if there is no article with queried topic but it is a valid topic', () => {
                     return request(app)
                         .get('/api/articles?topic=paper')
                         .expect(200)
@@ -194,7 +184,6 @@ describe('/api', () => {
                             expect(articles).toEqual([])
                         })
                 });
-
                 test('200 -- able to handle all potential queries together', () => {
                     return request(app)
                         .get('/api/articles?sort_by=article_id&order=asc&author=rogersop&topic=mitch')
@@ -215,8 +204,7 @@ describe('/api', () => {
             });
 
             describe('unhappy path', () => {
-                //404? 
-                test('GET responds with 400 and message "Bad Request" if trying to sort by column that doesn\'t exist', () => {
+                test('400 "Bad Request" -- if trying to sort by column that doesn\'t exist', () => {
                     return request(app)
                         .get('/api/articles?sort_by=notAColumn')
                         .expect(400)
@@ -224,8 +212,7 @@ describe('/api', () => {
                             expect(body).toEqual({ msg: "Bad Request" })
                         })
                 });
-
-                test('GET responds with 400 if order is not asc or desc', () => {
+                test('400 "Bad Request" -- if order is not asc or desc', () => {
                     return request(app)
                         .get('/api/articles?order=random')
                         .expect(400)
@@ -233,7 +220,6 @@ describe('/api', () => {
                             expect(body).toEqual({ msg: "Bad Request" })
                         })
                 });
-
                 test('404 "Author not found" -- username passed to author query does not exist', () => {
                     return request(app)
                         .get('/api/articles?author=fake_username')
@@ -242,7 +228,6 @@ describe('/api', () => {
                             expect(msg).toBe('Author not found')
                         })
                 });
-
                 test('404 "Topic not found" -- username passed to topic query does not exist', () => {
                     return request(app)
                         .get('/api/articles?topic=fake_topic')
@@ -257,7 +242,7 @@ describe('/api', () => {
         });
 
         describe('invalid method', () => {
-            test('status 405 for an invalid method', () => {
+            test('405 "Invalid Method"', () => {
                 const invalidMethods = ['post', 'patch', 'delete', 'put'];
                 const requestPromises = invalidMethods.map((method) => {
                     return request(app)
@@ -274,7 +259,7 @@ describe('/api', () => {
         describe('./api/articles/:article_id', () => {
 
             describe('GET methods', () => {
-                test('GET responds with 200 and the article with a comment_count', () => {
+                test('200 -- responds with the article with a comment_count', () => {
                     return request(app)
                         .get('/api/articles/1')
                         .expect(200)
@@ -296,7 +281,7 @@ describe('/api', () => {
             })
 
             describe('PATCH methods', () => {
-                test('PATCH responds with 202 and the article with incremented votes', () => {
+                test('202 -- responds with the article with incremented votes', () => {
                     return request(app)
                         .patch('/api/articles/1')
                         .send({ inc_votes: 5 })
@@ -315,7 +300,7 @@ describe('/api', () => {
                             })
                         })
                 });
-                test('PATCH responds with 202 and the article with decremented votes', () => {
+                test('202 -- responds with the article with decremented votes', () => {
                     return request(app)
                         .patch('/api/articles/1')
                         .send({ inc_votes: -5 })
@@ -334,7 +319,7 @@ describe('/api', () => {
                             });
                         });
                 });
-                test('PATCH responds with 400 and message "Bad Request" if inc_votes is not an number ', () => {
+                test('400 "Bad Request" -- if inc_votes is not an number ', () => {
                     return request(app)
                         .patch('/api/articles/1')
                         .send({ inc_votes: 'not a number' })
@@ -343,7 +328,7 @@ describe('/api', () => {
                             expect(body).toMatchObject({ msg: "Bad Request" })
                         });
                 })
-                test('PATCH responds with 400 and message "Bad Request" if trying to update anything but votes', () => {
+                test('400 "Bad Request" -- if passed object with key anything but inc_votes', () => {
                     const propertiesToUpdate = [
                         { article_id: 5900 },
                         { title: 'newTitle' },
@@ -367,7 +352,7 @@ describe('/api', () => {
             });
 
             describe('invalid article_id or method', () => {
-                test('GET, PATCH - respond with 404 and message "Article Not Found" if given an article_id that does not exist', () => {
+                test('GET, PATCH -- 404 "Article Not Found" -- if given an article_id that does not exist', () => {
                     const methods = ['get', 'patch'];
                     const requestPromises = methods.map((method) => {
                         return request(app)
@@ -380,7 +365,7 @@ describe('/api', () => {
                     })
                     return Promise.all(requestPromises);
                 });
-                test('GET, PATCH - respond with 400 and message "Bad Request" if given an article_id that is of the wrong type', () => {
+                test('GET, PATCH -- 400 "Bad Request" -- if given an article_id that is of the wrong type', () => {
                     const methods = ['get', 'patch'];
                     const requestPromises = methods.map((method) => {
                         return request(app)
@@ -393,7 +378,7 @@ describe('/api', () => {
                     });
                     return Promise.all(requestPromises);
                 });
-                test('status 405 for an invalid method', () => {
+                test('405 "Invalid Method"', () => {
                     const invalidMethods = ['post', 'put', 'delete'];
                     const requestPromises = invalidMethods.map((method) => {
                         return request(app)
@@ -410,7 +395,7 @@ describe('/api', () => {
             describe('./api/articles/:article_id/comments', () => {
 
                 describe('POST methods', () => {
-                    test('POST responds with 201 and returns the new comment', () => {
+                    test('201 -- responds with the new comment', () => {
                         return request(app)
                             .post('/api/articles/1/comments')
                             .send({
@@ -433,8 +418,7 @@ describe('/api', () => {
 
                             })
                     });
-
-                    test('POST returns a comment with a timestamp', () => {
+                    test('201 -- responds with a comment with a timestamp', () => {
                         return request(app)
                             .post('/api/articles/1/comments')
                             .send({
@@ -446,8 +430,7 @@ describe('/api', () => {
                                 expect(comment.created_at).not.toBe(null)
                             })
                     });
-
-                    test('POST responds with 201 and accepts a votes key', () => {
+                    test('201 -- accepts a votes key', () => {
                         return request(app)
                             .post('/api/articles/1/comments')
                             .send({
@@ -461,8 +444,7 @@ describe('/api', () => {
                                 expect((comment.votes)).toBe(50)
                             })
                     });
-
-                    test('POST responds with 400 and message "Bad Request" if posting something of the wrong type', () => {
+                    test('400 "Bad Request" -- if posting something of the wrong type', () => {
                         const commentsToPost = [
                             { username: 'rogersop', body: 1234567890 },
                             { username: 1234567890, body: 'this is a valid comment' },
@@ -480,8 +462,7 @@ describe('/api', () => {
                         return Promise.all(commentsPromises)
 
                     });
-
-                    test('POST responds with 400 if user doesn\'t exist ', () => {
+                    test('400 -- if user doesn\'t exist in the database', () => {
                         return request(app)
                             .post('/api/articles/1/comments')
                             .send({
@@ -496,7 +477,7 @@ describe('/api', () => {
                 });
 
                 describe('GET methods', () => {
-                    test('GET responds with 200 and an array of the comments which have the correct properties ', () => {
+                    test('200 -- responds with array of the comments which have the correct properties ', () => {
                         return request(app)
                             .get('/api/articles/1/comments')
                             .expect(200)
@@ -511,7 +492,7 @@ describe('/api', () => {
                                 expect(comments[0].author).toBe("butter_bridge")
                             })
                     });
-                    test('GET responds with 200 and comments sorted by created_at, in descending order as a default', () => {
+                    test('200 -- responds with comments sorted by created_at, in descending order as a default', () => {
                         return request(app)
                             .get('/api/articles/1/comments')
                             .expect(200)
@@ -519,7 +500,7 @@ describe('/api', () => {
                                 expect(comments).toBeSortedBy('created_at', { descending: true })
                             })
                     });
-                    test('GET responds with 200 and comments in ascending order', () => {
+                    test('200 -- responds with comments in ascending order', () => {
                         return request(app)
                             .get('/api/articles/1/comments?order=asc')
                             .expect(200)
@@ -527,7 +508,7 @@ describe('/api', () => {
                                 expect(comments).toBeSortedBy('created_at', { descending: false })
                             })
                     });
-                    test('GET responds with 200 and the comments sorted by your query, in desc order as a default ', () => {
+                    test('200 -- responds with comments sorted by any valid column, in desc order as a default ', () => {
                         const columnToSortBy = ['comment_id', 'author', 'votes', 'created_at', 'body']
                         const sortPromises = columnToSortBy.map(column => {
                             return request(app)
@@ -539,7 +520,7 @@ describe('/api', () => {
                         })
                         return Promise.all(sortPromises)
                     });
-                    test('GET responds with 200 and the comments sorted by your query, in asc order', () => {
+                    test('200 -- responds with comments sorted by any valid column, in asc order', () => {
                         const columnToSortBy = ['comment_id', 'author', 'votes', 'created_at', 'body']
                         const sortPromises = columnToSortBy.map(column => {
                             return request(app)
@@ -551,7 +532,7 @@ describe('/api', () => {
                         })
                         return Promise.all(sortPromises)
                     });
-                    test('GET responds with 400 and message "Bad Request" if trying to sort by column that doesn\'t exist', () => {
+                    test('400 "Bad Request" -- if trying to sort by column that doesn\'t exist', () => {
                         return request(app)
                             .get('/api/articles/1/comments?sort_by=notAColumn')
                             .expect(400)
@@ -559,7 +540,7 @@ describe('/api', () => {
                                 expect(body).toEqual({ msg: "Bad Request" })
                             })
                     });
-                    test('GET responds with 400 if order is not asc or desc', () => {
+                    test('400 "Bad Request" -- if order is not asc or desc', () => {
                         return request(app)
                             .get('/api/articles/1/comments?order=random')
                             .expect(400)
@@ -570,8 +551,7 @@ describe('/api', () => {
                 });
 
                 describe('invalid article id or method ', () => {
-                    // is this a 400 or a 404? i thought 404 but the error code is already in handle psql errors 
-                    test('GET, POST - respond with 400 and message "Bad Request" if given an article_id that does not exist', () => {
+                    test('GET, POST -- 404 "Comment Not Found" -- if article_id that does not exist in the database', () => {
                         const methods = ['get', 'post'];
                         const requestPromises = methods.map((method) => {
                             return request(app)
@@ -580,15 +560,14 @@ describe('/api', () => {
                                     username: 'rogersop',
                                     body: 'comment'
                                 })
-                                .expect(400)
+                                .expect(404)
                                 .then(({ body }) => {
-                                    expect(body).toMatchObject({ msg: "Bad Request" })
+                                    expect(body).toMatchObject({ msg: 'Not Found' })
                                 })
                         })
                         return Promise.all(requestPromises);
                     });
-
-                    test('GET, POST - respond with 400 and message "Bad Request" if given an article_id that does not exist', () => {
+                    test('GET, POST -- 400 "Bad Request" -- if  article_id that is not a number', () => {
                         const methods = ['get', 'post'];
                         const requestPromises = methods.map((method) => {
                             return request(app)
@@ -604,8 +583,7 @@ describe('/api', () => {
                         });
                         return Promise.all(requestPromises);
                     });
-
-                    test('status 405 for an invalid method', () => {
+                    test('405 "Invalid Method"', () => {
                         const invalidMethods = ['patch', 'put', 'delete'];
                         const requestPromises = invalidMethods.map((method) => {
                             return request(app)
@@ -628,7 +606,7 @@ describe('/api', () => {
     describe('./api/comments/:comment_id', () => {
 
         describe('PATCH methods', () => {
-            test('PATCH responds with 202 and the comment with incremented votes', () => {
+            test('202 -- responds with the comment with incremented votes', () => {
                 return request(app)
                     .patch('/api/comments/1')
                     .send({ inc_votes: 5 })
@@ -644,8 +622,7 @@ describe('/api', () => {
                         })
                     })
             });
-
-            test('PATCH responds with 202 and the comment with decremented votes', () => {
+            test('202 -- responds with the comment with decremented votes', () => {
                 return request(app)
                     .patch('/api/comments/1')
                     .send({ inc_votes: -5 })
@@ -661,8 +638,7 @@ describe('/api', () => {
                         })
                     })
             });
-
-            test('PATCH responds with 400 and message "Bad Request" if inc_votes is not an number ', () => {
+            test('400 "Bad Request" -- if inc_votes is not an number ', () => {
                 return request(app)
                     .patch('/api/comments/1')
                     .send({ inc_votes: 'not a number' })
@@ -671,7 +647,7 @@ describe('/api', () => {
                         expect(body).toMatchObject({ msg: "Bad Request" })
                     });
             })
-            test('PATCH responds with 400 and message "Bad Request" if trying to update anything but votes', () => {
+            test('400 "Bad Request" -- f passed object with key anything but inc_votes', () => {
                 const propertiesToUpdate = [
                     { comment_id: 100 },
                     { author: 'newUser' },
@@ -693,25 +669,68 @@ describe('/api', () => {
             });
         });
 
-        describe.only('DELETE methods', () => {
-            test('DELETE returns 204 and removes requested comment', () => {
+        describe('DELETE methods', () => {
+            test('204 -- removes requested comment', () => {
                 return request(app)
                     .delete('/api/comments/1')
                     .expect(204)
-                    .then(({ body }) => {
-                        console.log(body)
+                    .then(() => {
+                        return request(app)
+                            .get('/api/comments/1')
+                            .expect(404)
+                            .then(({ body: { msg } }) => {
+                                expect(msg).toBe("Comment Not Found")
+                            })
                     })
             });
         });
 
-        //invalid and bad endpoints
-
+        describe('invalid comment id or method ', () => {
+            test('GET, PATCH, DELETE -- 404 "Comment Not Found" --if comment_id does not exist in the database', () => {
+                const methods = ['get', 'patch', 'delete'];
+                const requestPromises = methods.map((method) => {
+                    return request(app)
+                    [method]('/api/comments/100')
+                        .send({ inc_votes: 5 })
+                        .expect(404)
+                        .then(({ body }) => {
+                            expect(body).toMatchObject({ msg: 'Comment Not Found' })
+                        })
+                })
+                return Promise.all(requestPromises);
+            });
+            test('GET, PATCH, DELETE -- 400 "Bad Request" --if comment_id is not a number', () => {
+                const methods = ['get', 'patch', 'delete'];
+                const requestPromises = methods.map((method) => {
+                    return request(app)
+                    [method]('/api/comments/commentFive')
+                        .send({ inc_votes: 5 })
+                        .expect(400)
+                        .then(({ body }) => {
+                            expect(body).toMatchObject({ msg: 'Bad Request' })
+                        })
+                });
+                return Promise.all(requestPromises);
+            });
+            test('405 "Invalid Method"', () => {
+                const invalidMethods = ['post', 'put'];
+                const requestPromises = invalidMethods.map((method) => {
+                    return request(app)
+                    [method]('/api/comments/1')
+                        .expect(405)
+                        .then(({ body }) => {
+                            expect(body.msg).toBe('Invalid Method')
+                        });
+                });
+                return Promise.all(requestPromises);
+            });
+        });
     });
 
 
     // test for incorrect endpoint
     describe('/missingRoute', () => {
-        test('status 404 -All methods', () => {
+        test('404 "Route Not Found" -- All methods', () => {
             const allMethods = ['get', 'post', 'patch', 'put', 'delete']
             const methodPromises = allMethods.map((method) => {
                 return request(app)

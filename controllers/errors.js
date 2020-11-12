@@ -8,10 +8,16 @@ exports.handleCustomErrors = (err, req, res, next) => {
 }
 
 exports.handlePSQLErrors = (err, req, res, next) => {
-    const badReqCodes = ['22P02', '23503', '42703'];
-    if (badReqCodes.includes(err.code)) {
+
+    const badReqCodes400 = ['22P02', '42703'];
+    const notFoundCodes404 = ['23503']
+    if (badReqCodes400.includes(err.code)) {
         res.status(400).send({ msg: 'Bad Request' })
-    } else {
+    }
+    else if (notFoundCodes404.includes(err.code)) {
+        res.status(404).send({ msg: 'Not Found' })
+    }
+    else {
         next(err);
     }
 }
