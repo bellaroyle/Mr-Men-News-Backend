@@ -9,6 +9,15 @@ describe('/api', () => {
 
     beforeEach(() => { return connection.seed.run() })
 
+    test("GET -- 200 -- responds with a JSON object describing all available endpoints", () => {
+        return request(app)
+            .get("/api")
+            .expect(200)
+            .then(({ body: { endpoints } }) => {
+                expect(typeof JSON.parse(endpoints)).toBe('object');
+            });
+    });
+
     describe('./api/topics', () => {
         test('GET -- 200 -- responds with all topics ', () => {
             return request(app)
