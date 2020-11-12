@@ -2,16 +2,12 @@ process.env.NODE_ENV = "test"
 const app = require("../app")
 const request = require("supertest")
 const connection = require("../connection")
-const { notify } = require("../app")
+
 
 describe('/api', () => {
-    afterAll(() => {
-        return connection.destroy()
-    })
+    afterAll(() => { return connection.destroy() })
 
-    beforeEach(() => {
-        return connection.seed.run()
-    })
+    beforeEach(() => { return connection.seed.run() })
 
     describe('./api/topics', () => {
         test('GET responds with status 200 & all topics ', () => {
@@ -82,70 +78,198 @@ describe('/api', () => {
 
 
     describe('./api/articles', () => {
-        //////////////////UNFINISHED!!
         describe('GET methods', () => {
+            describe('happy path', () => {
 
-            test('GET responds with 200 and an array of articles with the correct properties ', () => {
-                return request(app)
-                    .get('/api/articles')
-                    .expect(200)
-                    .then(({ body: { articles } }) => {
-                        expect(Object.keys(articles[0])).toEqual(expect.arrayContaining([
-                            'author',
-                            'title',
-                            'article_id',
-                            'topic',
-                            'created_at',
-                            'votes',
-                            'comment_count'
-                        ]))
-                        //expect(articles[0].author).toBe("butter_bridge")
-                    })
-            });
-
-            test('GET responds with 200 and articles sorted by created_at, in descending order as a default', () => {
-                return request(app)
-                    .get('/api/articles')
-                    .expect(200)
-                    .then(({ body: { articles } }) => {
-                        expect(articles).toBeSortedBy('created_at', { descending: true })
-                    })
-            });
-
-            test.skip('GET responds with 200 and articles sorted by comment_count, in descending order', () => {
-                return request(app)
-                    .get('/api/articles?sort_by=comment_count')
-                    .expect(200)
-                    .then(({ body: { articles } }) => {
-                        console.log(articles)
-                        expect(articles).toBeSortedBy('comment_count', { descending: true })
-                    })
-            });
-
-            test.skip('GET responds with 200 and the articles sorted by your query, in desc order as a default ', () => {
-                const columnToSortBy = [
-                    'author',
-                    'title',
-                    'article_id',
-                    'topic',
-                    'created_at',
-                    'votes',
-                    'comment_count'
-                ]
-                const sortPromises = columnToSortBy.map(column => {
+                test('GET responds with 200 and an array of articles with the correct properties ', () => {
                     return request(app)
-                        .get(`/api/articles?sort_by=${column}`)
+                        .get('/api/articles')
                         .expect(200)
-                        .then(({ body }) => {
-                            console.log(column, body.articles)
-                            expect(body.articles).toBeSortedBy(column, { descending: true })
+                        .then(({ body: { articles } }) => {
+                            expect(Object.keys(articles[0])).toEqual(expect.arrayContaining([
+                                'author',
+                                'title',
+                                'article_id',
+                                'topic',
+                                'created_at',
+                                'votes',
+                                'comment_count'
+                            ]))
+                            //expect(articles[0].author).toBe("butter_bridge")
                         })
-                })
-                return Promise.all(sortPromises)
+                });
+
+                test('GET responds with 200 and articles sorted by created_at, in descending order as a default', () => {
+                    return request(app)
+                        .get('/api/articles')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles).toBeSortedBy('created_at', { descending: true })
+                        })
+                });
+
+                test('GET responds with 200 and the articles sorted by any valid column that is queried,( in desc order as a default) ', () => {
+                    const columnToSortBy = [
+                        'author',
+                        'title',
+                        'article_id',
+                        'topic',
+                        'created_at',
+                        'votes',
+                        'comment_count'
+                    ]
+                    const sortPromises = columnToSortBy.map(column => {
+                        return request(app)
+                            .get(`/api/articles?sort_by=${column}`)
+                            .expect(200)
+                            .then(({ body }) => {
+
+                                expect(body.articles).toBeSortedBy(column, { descending: true, coerce: true })
+                            })
+                    })
+                    return Promise.all(sortPromises)
+                });
+
+                test('GET responds with 200 and the articles sorted by any valid column that is queried, and sorts in ascending order ', () => {
+                    const columnToSortBy = [
+                        'author',
+                        'title',
+                        'article_id',
+                        'topic',
+                        'created_at',
+                        'votes',
+                        'comment_count'
+                    ]
+                    const sortPromises = columnToSortBy.map(column => {
+                        return request(app)
+                            .get(`/api/articles?sort_by=${column}&order=asc`)
+                            .expect(200)
+                            .then(({ body }) => {
+
+                                expect(body.articles).toBeSortedBy(column, { descending: false, coerce: true })
+                            })
+                    })
+                    return Promise.all(sortPromises)
+                });
+
+                test('200 -- accepts author query that filters the articles by the username value specified in the query', () => {
+                    return request(app)
+                        .get('/api/articles?author=butter_bridge')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            const allByAuthor = articles.every(article => {
+                                return article.author === 'butter_bridge'
+                            })
+                            expect(allByAuthor).toBe(true)
+                        })
+                });
+
+                test('200 --  returns empty array if author has no articles but is a valid username', () => {
+                    return request(app)
+                        .get('/api/articles?author=lurker')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles).toEqual([])
+                        })
+                });
+
+
+                test('200 -- accepts topic query that filters the articles by the topic value specified in the query', () => {
+                    return request(app)
+                        .get('/api/articles?topic=mitch')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            const allByTopic = articles.every(article => {
+                                return article.topic === 'mitch'
+                            })
+                            expect(allByTopic).toBe(true)
+                        })
+                });
+
+                test('200 --  returns empty array if no article with queried topic but is a valid topic', () => {
+                    return request(app)
+                        .get('/api/articles?topic=paper')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles).toEqual([])
+                        })
+                });
+
+                test('200 -- able to handle all potential queries together', () => {
+                    return request(app)
+                        .get('/api/articles?sort_by=article_id&order=asc&author=rogersop&topic=mitch')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            const allByTopic = articles.every(article => {
+                                return article.topic === 'mitch'
+                            })
+                            const allByAuthor = articles.every(article => {
+                                return article.author === 'rogersop'
+                            })
+                            expect(articles).toBeSortedBy('article_id', { descending: false })
+                            expect(allByTopic).toBe(true)
+                            expect(allByAuthor).toBe(true)
+                        })
+                });
+
+            });
+
+            describe('unhappy path', () => {
+                //404? 
+                test('GET responds with 400 and message "Bad Request" if trying to sort by column that doesn\'t exist', () => {
+                    return request(app)
+                        .get('/api/articles?sort_by=notAColumn')
+                        .expect(400)
+                        .then(({ body }) => {
+                            expect(body).toEqual({ msg: "Bad Request" })
+                        })
+                });
+
+                test('GET responds with 400 if order is not asc or desc', () => {
+                    return request(app)
+                        .get('/api/articles?order=random')
+                        .expect(400)
+                        .then(({ body }) => {
+                            expect(body).toEqual({ msg: "Bad Request" })
+                        })
+                });
+
+                test('404 "Author not found" -- username passed to author query does not exist', () => {
+                    return request(app)
+                        .get('/api/articles?author=fake_username')
+                        .expect(404)
+                        .then(({ body: { msg } }) => {
+                            expect(msg).toBe('Author not found')
+                        })
+                });
+
+                test('404 "Topic not found" -- username passed to topic query does not exist', () => {
+                    return request(app)
+                        .get('/api/articles?topic=fake_topic')
+                        .expect(404)
+                        .then(({ body: { msg } }) => {
+                            expect(msg).toBe('Topic not found')
+                        })
+                });
+
             });
 
         });
 
+        describe('invalid method', () => {
+            test('status 405 for an invalid method', () => {
+                const invalidMethods = ['post', 'patch', 'delete', 'put'];
+                const requestPromises = invalidMethods.map((method) => {
+                    return request(app)
+                    [method]('/api/articles')
+                        .expect(405)
+                        .then(({ body }) => {
+                            expect(body.msg).toBe('Invalid Method')
+                        });
+                });
+                return Promise.all(requestPromises);
+            });
+        });
 
         describe('./api/articles/:article_id', () => {
 
@@ -569,8 +693,15 @@ describe('/api', () => {
             });
         });
 
-        describe('DELETE methods', () => {
-            //// do stuff here 
+        describe.only('DELETE methods', () => {
+            test('DELETE returns 204 and removes requested comment', () => {
+                return request(app)
+                    .delete('/api/comments/1')
+                    .expect(204)
+                    .then(({ body }) => {
+                        console.log(body)
+                    })
+            });
         });
 
         //invalid and bad endpoints

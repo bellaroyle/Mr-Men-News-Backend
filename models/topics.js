@@ -8,3 +8,14 @@ exports.fetchAllTopics = () => {
             return topicsRows
         })
 }
+
+exports.checkTopicExists = (topic) => {
+    return connection
+        .select('*')
+        .from('topics')
+        .where('slug', '=', topic)
+        .then(topics => {
+            if (topics.length === 0) return false;
+            else return true;
+        })
+}

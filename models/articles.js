@@ -1,7 +1,9 @@
 
 const connection = require('../connection')
+const { checkUsernameExists } = require('./users')
+const { checkTopicExists } = require('./topics')
 
-exports.fetchAllArticles = (sort_by, order) => {
+exports.fetchAllArticles = (sort_by, order, author, topic) => {
     if (order !== 'asc' && order !== 'desc' && order !== undefined) {
         return Promise.reject({ status: 400, msg: 'Bad Request' });
     }
@@ -12,10 +14,41 @@ exports.fetchAllArticles = (sort_by, order) => {
         .leftJoin('comments', 'articles.article_id', '=', 'comments.article_id')
         .groupBy('articles.article_id ')
         .orderBy(sort_by || 'created_at', order || 'desc')
+        .modify(query => {
+            if (author) {
+                query.where('articles.author', '=', author)
+            }
+            if (topic) {
+                query.where('articles.topic', '=', topic)
+            }
+        })
         .then(articles => {
-            //console.log(sort_by, articles)
+            if (articles.length === 0) {
+                if (author && topic) {
+                    return Promise.all([articles, checkUsernameExists(author), checkTopicExists(topic)]);
+                }
+                else if (author) return Promise.all([articles, checkUsernameExists(author), true]);
+                else if (topic) {
+                    return Promise.all([articles, true, checkTopicExists(topic)])
+                }
+            }
+            else return [articles, true, true]
+        })
+        .then(([articles, userExists, topicExists]) => {
+            // if (!userExists&&!topicExists) {
+            //     return Promise.reject({ status: 404, msg: 'Author not found' });
+            // }
+
+            if (!userExists) {
+                return Promise.reject({ status: 404, msg: 'Author not found' });
+            }
+            if (!topicExists) {
+                return Promise.reject({ status: 404, msg: 'Topic not found' });
+            }
             return articles;
         })
+
+    //.returning('*')
 }
 
 exports.fetchArticleById = (article_id) => {

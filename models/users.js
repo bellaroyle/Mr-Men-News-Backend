@@ -10,3 +10,14 @@ exports.fetchUserByUsername = (username) => {
             else return user[0];
         })
 }
+
+exports.checkUsernameExists = (username) => {
+    return connection
+        .select('*')
+        .from('users')
+        .where('username', '=', username)
+        .then(users => {
+            if (users.length === 0) return false;
+            else return true;
+        })
+}
