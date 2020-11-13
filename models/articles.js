@@ -3,6 +3,22 @@ const connection = require('../connection')
 const { checkUsernameExists } = require('./users')
 const { checkTopicExists } = require('./topics')
 
+exports.fetchNoOfArticles = (author, topic) => {
+    return connection
+        .select('*')
+        .from('articles')
+        .modify(query => {
+            if (author) {
+                query.where('articles.author', '=', author)
+            }
+            if (topic) {
+                query.where('articles.topic', '=', topic)
+            }
+        }).then(articles => {
+            return articles.length
+        })
+}
+
 exports.fetchAllArticles = (sort_by, order, author, topic, limit, p) => {
 
     if (order !== 'asc' && order !== 'desc' && order !== undefined) {
@@ -26,6 +42,7 @@ exports.fetchAllArticles = (sort_by, order, author, topic, limit, p) => {
             if (p > 1) {
                 query.offset(parseInt(limit) * parseInt(p - 1) || 10 * parseInt(p - 1))
             }
+
         })
         .then(articles => {
             if (articles.length === 0) {
@@ -48,6 +65,7 @@ exports.fetchAllArticles = (sort_by, order, author, topic, limit, p) => {
             }
             return articles;
         })
+
 }
 
 exports.fetchArticleById = (article_id) => {
@@ -68,15 +86,16 @@ exports.fetchArticleById = (article_id) => {
 
 exports.updateArticleById = (article_id, inc_votes) => {
     return connection
-        .select('*')
         .from('articles')
         .where('article_id', '=', article_id)
+        .increment('votes', inc_votes)
         .returning('*')
         .then(article => {
             if (article.length === 0) return Promise.reject({ status: 404, msg: 'Article Not Found' });
             else {
-                article[0].votes += inc_votes
-                return article[0];
+
+                return article[0]
+
             }
         })
 }

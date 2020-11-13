@@ -45,7 +45,9 @@
       "author",
       "topic",
       "sort_by",
-      "order"
+      "order",
+      "limit",
+      "p"
     ],
     "exampleResponse": {
       "articles": [

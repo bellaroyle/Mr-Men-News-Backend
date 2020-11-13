@@ -241,6 +241,22 @@ describe('/api', () => {
                             expect(articles[0].article_id).toBe(10)
                         })
                 });
+                test('200 -- total count property ', () => {
+                    return request(app)
+                        .get('/api/articles')
+                        .expect(200)
+                        .then(({ body }) => {
+                            expect(body).toHaveProperty('total_count')
+                        })
+                })
+                test('200 -- response has a total count property displays the total number of articles with any filters applied, discounting the limit', () => {
+                    return request(app)
+                        .get('/api/articles?topic=mitch')
+                        .expect(200)
+                        .then(({ body: { total_count } }) => {
+                            expect(total_count).toBe(11)
+                        })
+                })
 
             });
 
@@ -293,7 +309,7 @@ describe('/api', () => {
                             expect(articles).toEqual([])
                         })
                 });
-                //?? do we want bad req instead? 
+                //?? do we want bad req instead? --yes
                 test('200 -- limit is not a number then limited to 10', () => {
                     return request(app)
                         .get('/api/articles?limit=seven')
@@ -302,7 +318,7 @@ describe('/api', () => {
                             expect(articles.length).toBeLessThanOrEqual(10)
                         })
                 });
-                //???? do we want 400 instead?
+                //???? do we want 400 instead?--yes
                 test('200 -- page not a number then is ignored and first page is returned', () => {
                     return request(app)
                         .get('/api/articles?p=seven')
@@ -314,7 +330,6 @@ describe('/api', () => {
             });
 
         });
-
         describe('invalid method', () => {
             test('405 "Invalid Method"', () => {
                 const invalidMethods = ['post', 'patch', 'delete', 'put'];
@@ -355,11 +370,11 @@ describe('/api', () => {
             })
 
             describe('PATCH methods', () => {
-                test('202 -- responds with the article with incremented votes', () => {
+                test('200 -- responds with the article with incremented votes', () => {
                     return request(app)
                         .patch('/api/articles/1')
                         .send({ inc_votes: 5 })
-                        .expect(202)
+                        .expect(200)
                         .then(({ body }) => {
                             expect(body).toMatchObject({
                                 article: {
@@ -374,11 +389,11 @@ describe('/api', () => {
                             })
                         })
                 });
-                test('202 -- responds with the article with decremented votes', () => {
+                test('200 -- responds with the article with decremented votes', () => {
                     return request(app)
                         .patch('/api/articles/1')
                         .send({ inc_votes: -5 })
-                        .expect(202)
+                        .expect(200)
                         .then(({ body }) => {
                             expect(body).toMatchObject({
                                 article: {
@@ -675,16 +690,14 @@ describe('/api', () => {
         });
 
     });
-
-
     describe('./api/comments/:comment_id', () => {
 
         describe('PATCH methods', () => {
-            test('202 -- responds with the comment with incremented votes', () => {
+            test('200 -- responds with the comment with incremented votes', () => {
                 return request(app)
                     .patch('/api/comments/1')
                     .send({ inc_votes: 5 })
-                    .expect(202)
+                    .expect(200)
                     .then(({ body: { comment } }) => {
                         expect(comment).toMatchObject({
                             comment_id: 1,
@@ -696,11 +709,11 @@ describe('/api', () => {
                         })
                     })
             });
-            test('202 -- responds with the comment with decremented votes', () => {
+            test('200 -- responds with the comment with decremented votes', () => {
                 return request(app)
                     .patch('/api/comments/1')
                     .send({ inc_votes: -5 })
-                    .expect(202)
+                    .expect(200)
                     .then(({ body: { comment } }) => {
                         expect(comment).toMatchObject({
                             comment_id: 1,
@@ -801,8 +814,6 @@ describe('/api', () => {
         });
     });
 
-
-    // test for incorrect endpoint
     describe('/missingRoute', () => {
         test('404 "Route Not Found" -- All methods', () => {
             const allMethods = ['get', 'post', 'patch', 'put', 'delete']

@@ -3,13 +3,17 @@ const {
     fetchArticleById,
     updateArticleById,
     addCommentToArticle,
-    fetchCommentsByArticle
+    fetchCommentsByArticle,
+    fetchNoOfArticles
 } = require("../models/articles")
 
 exports.getAllArticles = (req, res, next) => {
     const { sort_by, order, author, topic, limit, p } = req.query;
-    fetchAllArticles(sort_by, order, author, topic, limit, p).then(articles => {
-        res.status(200).send({ articles })
+    fetchAllArticles(sort_by, order, author, topic, limit, p).then((articles) => {
+        fetchNoOfArticles(author, topic).then((total_count) => {
+            res.status(200).send({ articles, total_count })
+        })
+
     })
         .catch(next)
 }
@@ -29,7 +33,7 @@ exports.patchArticleById = (req, res, next) => {
     if (typeof inc_votes !== 'number') { res.status(400).send({ msg: "Bad Request" }) }
     else {
         updateArticleById(article_id, inc_votes).then(article => {
-            res.status(202).send({ article })
+            res.status(200).send({ article })
         })
             .catch(next)
     }
