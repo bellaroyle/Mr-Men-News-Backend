@@ -115,7 +115,6 @@ describe('/api', () => {
                                 'votes',
                                 'comment_count'
                             ]))
-                            //expect(articles[0].author).toBe("butter_bridge")
                         })
                 });
                 test('200 -- responds with articles sorted by created_at, in descending order as a default', () => {
@@ -322,7 +321,6 @@ describe('/api', () => {
                             expect(articles).toEqual([])
                         })
                 });
-                //?? do we want bad req instead? --yes
                 test('200 -- limit is not a number then limited to 10', () => {
                     return request(app)
                         .get('/api/articles?limit=seven')
@@ -330,8 +328,7 @@ describe('/api', () => {
                         .then(({ body: { articles } }) => {
                             expect(articles.length).toBeLessThanOrEqual(10)
                         })
-                });
-                //???? do we want 400 instead?--yes
+                })
                 test('200 -- page not a number then is ignored and first page is returned', () => {
                     return request(app)
                         .get('/api/articles?p=seven')
@@ -454,7 +451,6 @@ describe('/api', () => {
             });
 
             describe('DELETE methods', () => {
-                //should also remove associated comments 
                 test('204 -- removes requested article', () => {
                     return request(app)
                         .delete('/api/articles/8')

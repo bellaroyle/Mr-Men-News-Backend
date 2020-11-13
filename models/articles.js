@@ -112,7 +112,6 @@ exports.removeArticleById = (article_id) => {
         })
 }
 
-
 exports.addCommentToArticle = (article_id, username, restOfBody) => {
     if (typeof restOfBody.body !== 'string') {
         return Promise.reject({ status: 400, msg: 'Bad Request' });
