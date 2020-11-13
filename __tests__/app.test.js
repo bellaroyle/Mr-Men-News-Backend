@@ -166,14 +166,6 @@ describe('/api', () => {
                             expect(allByAuthor).toBe(true)
                         })
                 });
-                test('200 -- responds with empty array if author has no articles but is a valid username', () => {
-                    return request(app)
-                        .get('/api/articles?author=lurker')
-                        .expect(200)
-                        .then(({ body: { articles } }) => {
-                            expect(articles).toEqual([])
-                        })
-                });
                 test('200 -- accepts topic query, responds with articles filtered by the topic value specified in the query', () => {
                     return request(app)
                         .get('/api/articles?topic=mitch')
@@ -185,17 +177,34 @@ describe('/api', () => {
                             expect(allByTopic).toBe(true)
                         })
                 });
-                test('200 -- responds with empty array if there is no article with queried topic but it is a valid topic', () => {
+                test('200 -- limits number of articles to 10 as a default', () => {
                     return request(app)
-                        .get('/api/articles?topic=paper')
+                        .get('/api/articles')
                         .expect(200)
                         .then(({ body: { articles } }) => {
-                            expect(articles).toEqual([])
+                            expect(articles.length).toBeLessThanOrEqual(10)
                         })
                 });
+                test('200 -- limits number of articles by number (<10) given in query', () => {
+                    return request(app)
+                        .get('/api/articles?limit=5')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles.length).toBeLessThanOrEqual(5)
+                        })
+                });
+                test('200 -- limits number of articles by number (>10) given in query', () => {
+                    return request(app)
+                        .get('/api/articles?limit=11')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles.length).toBeLessThanOrEqual(11)
+                        })
+                });
+                //add pagination to this 
                 test('200 -- able to handle all potential queries together', () => {
                     return request(app)
-                        .get('/api/articles?sort_by=article_id&order=asc&author=rogersop&topic=mitch')
+                        .get('/api/articles?sort_by=article_id&order=asc&author=rogersop&topic=mitch&limit=1')
                         .expect(200)
                         .then(({ body: { articles } }) => {
                             const allByTopic = articles.every(article => {
@@ -207,6 +216,7 @@ describe('/api', () => {
                             expect(articles).toBeSortedBy('article_id', { descending: false })
                             expect(allByTopic).toBe(true)
                             expect(allByAuthor).toBe(true)
+                            expect(articles.length).toBeLessThanOrEqual(1)
                         })
                 });
 
@@ -237,6 +247,14 @@ describe('/api', () => {
                             expect(msg).toBe('Author not found')
                         })
                 });
+                test('200 -- responds with empty array if author has no articles but is a valid username', () => {
+                    return request(app)
+                        .get('/api/articles?author=lurker')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles).toEqual([])
+                        })
+                });
                 test('404 "Topic not found" -- username passed to topic query does not exist', () => {
                     return request(app)
                         .get('/api/articles?topic=fake_topic')
@@ -245,7 +263,22 @@ describe('/api', () => {
                             expect(msg).toBe('Topic not found')
                         })
                 });
-
+                test('200 -- responds with empty array if there is no article with queried topic but it is a valid topic', () => {
+                    return request(app)
+                        .get('/api/articles?topic=paper')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles).toEqual([])
+                        })
+                });
+                test('200 -- limit is not a number then limited to 10', () => {
+                    return request(app)
+                        .get('/api/articles?limit=seven')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles.length).toBeLessThanOrEqual(10)
+                        })
+                });
             });
 
         });

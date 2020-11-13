@@ -3,7 +3,8 @@ const connection = require('../connection')
 const { checkUsernameExists } = require('./users')
 const { checkTopicExists } = require('./topics')
 
-exports.fetchAllArticles = (sort_by, order, author, topic) => {
+exports.fetchAllArticles = (sort_by, order, author, topic, limit) => {
+
     if (order !== 'asc' && order !== 'desc' && order !== undefined) {
         return Promise.reject({ status: 400, msg: 'Bad Request' });
     }
@@ -14,6 +15,7 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
         .leftJoin('comments', 'articles.article_id', '=', 'comments.article_id')
         .groupBy('articles.article_id ')
         .orderBy(sort_by || 'created_at', order || 'desc')
+        .limit(parseInt(limit) || 10)
         .modify(query => {
             if (author) {
                 query.where('articles.author', '=', author)
@@ -35,10 +37,6 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
             else return [articles, true, true]
         })
         .then(([articles, userExists, topicExists]) => {
-            // if (!userExists&&!topicExists) {
-            //     return Promise.reject({ status: 404, msg: 'Author not found' });
-            // }
-
             if (!userExists) {
                 return Promise.reject({ status: 404, msg: 'Author not found' });
             }
@@ -47,8 +45,6 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
             }
             return articles;
         })
-
-    //.returning('*')
 }
 
 exports.fetchArticleById = (article_id) => {
