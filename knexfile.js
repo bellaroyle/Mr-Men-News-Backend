@@ -1,4 +1,6 @@
+const { DB_URL } = process.env;
 const ENV = process.env.NODE_ENV || 'development';
+console.log(DB_URL)
 
 const baseConfig = {
   client: 'pg',
@@ -20,7 +22,15 @@ const customConfig = {
     connection: {
       database: 'nc_news_test'
     }
-  }
+  },
+  production: {
+    connection: {
+      connectionString: DB_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
+  },
 };
 //console.log(ENV)
 

@@ -99,7 +99,9 @@
     "description": "Serves an array containing the comment objects associated with the article that matches article_id",
     "queries": [
       "sort_by",
-      "order"
+      "order",
+      "limit",
+      "p"
     ],
     "exampleResponse": {
       "comments": [

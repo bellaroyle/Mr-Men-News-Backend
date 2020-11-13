@@ -604,7 +604,7 @@ describe('/api', () => {
                                 .get(`/api/articles/1/comments?sort_by=${column}`)
                                 .expect(200)
                                 .then(({ body: { comments } }) => {
-                                    expect(comments).toBeSortedBy(column, { descending: true })
+                                    expect(comments).toBeSortedBy(column, { descending: true, coerce: true })
                                 })
                         })
                         return Promise.all(sortPromises)
@@ -620,6 +620,52 @@ describe('/api', () => {
                                 })
                         })
                         return Promise.all(sortPromises)
+                    });
+                    test('200 -- limits number of comments to 10 as a default', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                expect(comments.length).toBeLessThanOrEqual(10)
+                            })
+                    });
+                    test('200 -- limits number of comments by number (<10) given in query', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?limit=5')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                expect(comments.length).toBeLessThanOrEqual(5)
+                            })
+                    });
+                    test('200 -- limits number of comments by number (>10) given in query', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?limit=11')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                expect(comments.length).toBeLessThanOrEqual(11)
+                            })
+                    });
+                    test('200 -- accepts p query which specifies at which page to start if no limit given', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?sort_by=comment_id&order=asc&p=2')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                const commentsFromP2 = comments.every(comment => {
+                                    return comment.comment_id <= 20 && comment.comment_id > 10
+                                })
+                                expect(commentsFromP2).toBe(true)
+                            })
+                    });
+                    test('200 -- accepts p query which specifies at which page to start if limit given', () => {
+                        return request(app)
+                            .get('/api/articles/1/comments?sort_by=comment_id&order=asc&limit=5&p=2')
+                            .expect(200)
+                            .then(({ body: { comments } }) => {
+                                const commentsFromP2 = comments.every(comment => {
+                                    return comment.comment_id <= 11 && comment.comment_id > 6
+                                })
+                                expect(commentsFromP2).toBe(true)
+                            })
                     });
                     test('400 "Bad Request" -- if trying to sort by column that doesn\'t exist', () => {
                         return request(app)
@@ -759,11 +805,11 @@ describe('/api', () => {
         describe('DELETE methods', () => {
             test('204 -- removes requested comment', () => {
                 return request(app)
-                    .delete('/api/comments/1')
+                    .delete('/api/comments/18')
                     .expect(204)
                     .then(() => {
                         return request(app)
-                            .get('/api/comments/1')
+                            .get('/api/comments/18')
                             .expect(404)
                             .then(({ body: { msg } }) => {
                                 expect(msg).toBe("Comment Not Found")

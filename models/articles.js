@@ -127,7 +127,7 @@ exports.addCommentToArticle = (article_id, username, restOfBody) => {
         })
 }
 
-exports.fetchCommentsByArticle = (article_id, sort_by, order) => {
+exports.fetchCommentsByArticle = (article_id, sort_by, order, limit, p) => {
     if (order !== 'asc' && order !== 'desc' && order !== undefined) {
         return Promise.reject({ status: 400, msg: 'Bad Request' });
     }
@@ -136,6 +136,12 @@ exports.fetchCommentsByArticle = (article_id, sort_by, order) => {
         .from('comments')
         .where('article_id', '=', article_id)
         .orderBy(sort_by || 'created_at', order || 'desc')
+        .limit(parseInt(limit) || 10)
+        .modify(query => {
+            if (p > 1) {
+                query.offset(parseInt(limit) * parseInt(p - 1) || 10 * parseInt(p - 1))
+            }
+        })
         .then(comments => {
             if (comments.length === 0) return Promise.reject({ status: 404, msg: 'Not Found' });
             else return comments
