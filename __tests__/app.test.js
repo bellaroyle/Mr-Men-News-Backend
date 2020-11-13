@@ -9,15 +9,28 @@ describe('/api', () => {
 
     beforeEach(() => { return connection.seed.run() })
 
-    test("GET -- 200 -- responds with a JSON object describing all available endpoints", () => {
+    test.skip("GET -- 200 -- responds with a JSON object describing all available endpoints", () => {
         return request(app)
             .get("/api")
             .expect(200)
             .then(({ body: { endpoints } }) => {
-                expect(typeof JSON.parse(endpoints)).toBe('object');
+                expect(typeof endpoints).toBe('object');
             });
     });
 
+    test('405 Invalid Methods', () => {
+        const invalidMethods = ['post', 'patch', 'delete', 'put'];
+        const requestPromises = invalidMethods.map((method) => {
+            return request(app)
+            [method]('/api')
+                .expect(405)
+                .then(({ body }) => {
+                    expect(body.msg).toBe('Invalid Method')
+                });
+        });
+        return Promise.all(requestPromises);
+
+    });
     describe('./api/topics', () => {
         test('GET -- 200 -- responds with all topics ', () => {
             return request(app)

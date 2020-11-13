@@ -5,6 +5,7 @@ const { handleInternalErrors, send404, handleCustomErrors, handlePSQLErrors } = 
 
 app.use(express.json());
 
+
 app.use("/api", apiRouter);
 app.all('/*', send404);
 
