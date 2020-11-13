@@ -201,10 +201,31 @@ describe('/api', () => {
                             expect(articles.length).toBeLessThanOrEqual(11)
                         })
                 });
-                //add pagination to this 
+                test('200 -- accepts p query which specifies at which page to start if no limit given', () => {
+                    return request(app)
+                        .get('/api/articles?p=2')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            const articlesFromP2 = articles.every(article => {
+                                return article.article_id <= 20 && article.article_id > 10
+                            })
+                            expect(articlesFromP2).toBe(true)
+                        })
+                });
+                test('200 -- accepts p query which specifies at which page to start if limit given', () => {
+                    return request(app)
+                        .get('/api/articles?limit=5&p=2')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            const articlesFromP2 = articles.every(article => {
+                                return article.article_id <= 10 && article.article_id > 5
+                            })
+                            expect(articlesFromP2).toBe(true)
+                        })
+                });
                 test('200 -- able to handle all potential queries together', () => {
                     return request(app)
-                        .get('/api/articles?sort_by=article_id&order=asc&author=rogersop&topic=mitch&limit=1')
+                        .get('/api/articles?sort_by=article_id&order=asc&author=rogersop&topic=mitch&limit=1&p=2')
                         .expect(200)
                         .then(({ body: { articles } }) => {
                             const allByTopic = articles.every(article => {
@@ -217,6 +238,7 @@ describe('/api', () => {
                             expect(allByTopic).toBe(true)
                             expect(allByAuthor).toBe(true)
                             expect(articles.length).toBeLessThanOrEqual(1)
+                            expect(articles[0].article_id).toBe(10)
                         })
                 });
 
@@ -271,12 +293,22 @@ describe('/api', () => {
                             expect(articles).toEqual([])
                         })
                 });
+                //?? do we want bad req instead? 
                 test('200 -- limit is not a number then limited to 10', () => {
                     return request(app)
                         .get('/api/articles?limit=seven')
                         .expect(200)
                         .then(({ body: { articles } }) => {
                             expect(articles.length).toBeLessThanOrEqual(10)
+                        })
+                });
+                //???? do we want 400 instead?
+                test('200 -- page not a number then is ignored and first page is returned', () => {
+                    return request(app)
+                        .get('/api/articles?p=seven')
+                        .expect(200)
+                        .then(({ body: { articles } }) => {
+                            expect(articles[0].article_id).toBe(1)
                         })
                 });
             });

@@ -3,7 +3,7 @@ const connection = require('../connection')
 const { checkUsernameExists } = require('./users')
 const { checkTopicExists } = require('./topics')
 
-exports.fetchAllArticles = (sort_by, order, author, topic, limit) => {
+exports.fetchAllArticles = (sort_by, order, author, topic, limit, p) => {
 
     if (order !== 'asc' && order !== 'desc' && order !== undefined) {
         return Promise.reject({ status: 400, msg: 'Bad Request' });
@@ -22,6 +22,9 @@ exports.fetchAllArticles = (sort_by, order, author, topic, limit) => {
             }
             if (topic) {
                 query.where('articles.topic', '=', topic)
+            }
+            if (p > 1) {
+                query.offset(parseInt(limit) * parseInt(p - 1) || 10 * parseInt(p - 1))
             }
         })
         .then(articles => {
