@@ -100,6 +100,19 @@ exports.updateArticleById = (article_id, inc_votes) => {
         })
 }
 
+exports.removeArticleById = (article_id) => {
+    return connection
+        .delete()
+        .from('articles')
+        .where('article_id', '=', article_id)
+        .returning('*')
+        .then(article => {
+            if (article.length === 0) return Promise.reject({ status: 404, msg: 'Article Not Found' });
+
+        })
+}
+
+
 exports.addCommentToArticle = (article_id, username, restOfBody) => {
     if (typeof restOfBody.body !== 'string') {
         return Promise.reject({ status: 400, msg: 'Bad Request' });

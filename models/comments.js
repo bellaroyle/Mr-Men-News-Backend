@@ -23,7 +23,6 @@ exports.removeCommentById = (comment_id) => {
         .returning('*')
         .then(comment => {
             if (comment.length === 0) return Promise.reject({ status: 404, msg: 'Comment Not Found' });
-            //else return comment
         })
 }
 

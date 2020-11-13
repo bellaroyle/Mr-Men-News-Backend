@@ -9,7 +9,7 @@ describe('/api', () => {
 
     beforeEach(() => { return connection.seed.run() })
 
-    test.skip("GET -- 200 -- responds with a JSON object describing all available endpoints", () => {
+    test("GET -- 200 -- responds with a JSON object describing all available endpoints", () => {
         return request(app)
             .get("/api")
             .expect(200)
@@ -453,9 +453,27 @@ describe('/api', () => {
                 });
             });
 
+            describe('DELETE methods', () => {
+                //should also remove associated comments 
+                test('204 -- removes requested article', () => {
+                    return request(app)
+                        .delete('/api/articles/8')
+                        .expect(204)
+                        .then(() => {
+                            return request(app)
+                                .get('/api/articles/8')
+                                .expect(404)
+                                .then(({ body: { msg } }) => {
+                                    expect(msg).toBe("Article Not Found")
+                                })
+                        })
+                });
+            });
+
+
             describe('invalid article_id or method', () => {
-                test('GET, PATCH -- 404 "Article Not Found" -- if given an article_id that does not exist', () => {
-                    const methods = ['get', 'patch'];
+                test('GET, PATCH, DELETE-- 404 "Article Not Found" -- if given an article_id that does not exist', () => {
+                    const methods = ['get', 'patch', 'delete'];
                     const requestPromises = methods.map((method) => {
                         return request(app)
                         [method]('/api/articles/100')
@@ -467,8 +485,8 @@ describe('/api', () => {
                     })
                     return Promise.all(requestPromises);
                 });
-                test('GET, PATCH -- 400 "Bad Request" -- if given an article_id that is of the wrong type', () => {
-                    const methods = ['get', 'patch'];
+                test('GET, PATCH, DELETE -- 400 "Bad Request" -- if given an article_id that is of the wrong type', () => {
+                    const methods = ['get', 'patch', 'delete'];
                     const requestPromises = methods.map((method) => {
                         return request(app)
                         [method]('/api/articles/articleFive')
@@ -481,7 +499,7 @@ describe('/api', () => {
                     return Promise.all(requestPromises);
                 });
                 test('405 "Invalid Method"', () => {
-                    const invalidMethods = ['post', 'put', 'delete'];
+                    const invalidMethods = ['post', 'put'];
                     const requestPromises = invalidMethods.map((method) => {
                         return request(app)
                         [method]('/api/articles/1')
