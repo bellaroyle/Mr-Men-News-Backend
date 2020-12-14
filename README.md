@@ -1,7 +1,9 @@
 # Mr Men News Backend
 
-- API I created for my Mr Men News site. Has Appropriate error handling and is tested with [Jest](https://jestjs.io).
+- API created for my Mr Men News site. Has Appropriate error handling and is tested with [Jest](https://jestjs.io).
 - Created using an [express](http://expressjs.com) server and [Knex](https://knexjs.org) to interact with a [PSQL](https://www.postgresql.org) database.
+- The app is hosted [here(https://nc-news-api-br.herokuapp.com/api) using [Heroku](https://www.heroku.com)
+)
 
 [Click here](https://mr-men-news.netlify.app) to see the **hosted** version of the app.
 
